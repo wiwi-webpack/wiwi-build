@@ -120,7 +120,7 @@ module.exports = {
     
         // plugins
         var plugins = [
-            new webpack.optimize.OccurenceOrderPlugin()
+            new webpack.optimize.OccurrenceOrderPlugin()
         ];
         if (exportcss) {
             plugins.push(new ExtractTextPlugin('[name].css')); // allChunks 的会带来css的顺序问题
@@ -207,7 +207,7 @@ module.exports = {
                 publicPath: publicPath
                 },
                 plugins: plugins.concat([
-                new webpack.DefinePlugin(util.parseVars(vars))
+                    new webpack.DefinePlugin(util.parseVars(vars))
                 ]),
                 resolve: resolve,
                 resolveLoader: resolveLoader,
@@ -270,8 +270,9 @@ module.exports = {
         } else { // single-compiler
     
             // vars defined
+            console.log('single-compiler');
             if (combinations.length) {
-            plugins.push(new webpack.DefinePlugin(util.parseVars(combinations[0])));
+                plugins.push(new webpack.DefinePlugin(util.parseVars(combinations[0])));
             }
     
             webpack(util.preProcess({
@@ -287,10 +288,10 @@ module.exports = {
             externals: externals,
             cache: true,
             module: {
-                loaders: loader(options, true)
+                rules: loader(options, true)
             }
             }), function(err, stats) {
-    
+                console.log('err', err, stats);
             // print wepack compile result
             if (err) {
                 return util.buildFail(err.toString());

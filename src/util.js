@@ -5,6 +5,7 @@ var path = require('path');
 var glob = require('glob');
 var mkdirp = require('mkdirp');
 var chalk = require('chalk');
+var webpack = require('webpack');
 
 
 var util = {
@@ -127,10 +128,10 @@ var util = {
             var webpackCfg = require(util.cwdPath('webpack.config.js'));
             newConfig = typeof webpackCfg === 'function' ? webpackCfg(config, webpack) : webpackCfg;
         } catch (e) {
-        if (!/Cannot find module.+webpack\.config\.js/.test(e.toString())) {
-            console.error(chalk.red('Error in "webpack.config.js"\n' + e.stack));
-            process.exit(1);
-        }
+            if (!/Cannot find module.+webpack\.config\.js/.test(e.toString())) {
+                console.error(chalk.red('Error in "webpack.config.js"\n' + e.stack));
+                process.exit(1);
+            }
         }
         return newConfig || config;
     },
