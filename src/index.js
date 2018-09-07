@@ -110,12 +110,12 @@ module.exports = {
             resolveRoot.push(util.relPath('..', '..'));
         }
         var resolve = {
-            root: resolveRoot,
+            modules: resolveRoot,
             alias: alias,
-            extensions: ['', '.js', '.jsx']
+            extensions: ['*', '.js', '.jsx']
         };
         var resolveLoader = {
-            root: resolveRoot
+            modules: resolveRoot
         };
     
         // plugins
@@ -200,11 +200,12 @@ module.exports = {
 
             var compilers = combinations.length > 1 ? combinations.map(function(vars, index) {
             return util.preProcess({
+                mode: 'development',
                 entry: entries,
                 output: {
-                path: util.cwdPath(dist),
-                filename: '[name]' + util.suffixByVars(vars, buildvars) + '.js',
-                publicPath: publicPath
+                    path: util.cwdPath(dist),
+                    filename: '[name]' + util.suffixByVars(vars, buildvars) + '.js',
+                    publicPath: publicPath
                 },
                 plugins: plugins.concat([
                     new webpack.DefinePlugin(util.parseVars(vars))
@@ -218,6 +219,7 @@ module.exports = {
                 }
             });
             }) : util.preProcess({
+                mode: 'development',
                 entry: entries,
                 output: {
                 path: util.cwdPath(dist),
@@ -276,6 +278,7 @@ module.exports = {
             }
     
             webpack(util.preProcess({
+                mode: 'development',
             entry: entries,
             output: {
                 path: util.cwdPath(dist),
@@ -291,28 +294,29 @@ module.exports = {
                 rules: loader(options, true)
             }
             }), function(err, stats) {
-                console.log('err', err, stats);
-            // print wepack compile result
-            if (err) {
-                return util.buildFail(err.toString());
-            }
-            if (stats.hasErrors()) {
-                return util.buildFail(stats.toJson().errors[0].split('\n').slice(0, 2).join('\n'));
-            }
-            console.log('\n' + stats.toString({
-                hash: false,
-                chunks: false,
-                children: false,
-                colors: true
-            }));
-    
-            // minify task
-            minify(stats.toJson({
-                hash: false,
-                chunks: false,
-                children: false,
-                modules: false
-            }).assets);
+                console.log('err', err);
+                // print wepack compile result
+                if (err) {
+                    return util.buildFail(err.toString());
+                }
+                if (stats.hasErrors()) {
+                    console.log('stats', stats.toJson().errors);
+                    return util.buildFail(stats.toJson().errors[0].split('\n').slice(0, 2).join('\n'));
+                }
+                console.log('\n' + stats.toString({
+                    hash: false,
+                    chunks: false,
+                    children: false,
+                    colors: true
+                }));
+        
+                // minify task
+                minify(stats.toJson({
+                    hash: false,
+                    chunks: false,
+                    children: false,
+                    modules: false
+                }).assets);
             });
         }
 

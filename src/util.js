@@ -136,6 +136,12 @@ var util = {
         return newConfig || config;
     },
 
+    // webpack build failed
+    buildFail: function(msg) {
+        console.error(chalk.red('\n' + chalk.bold('Webpack Build Failed.') + '\n' + msg));
+        process.exit(1);
+    },
+
     // log after finish
     finishLog: function(startStamp) {
         console.log(chalk.green.bold('Finished in ' + ((Date.now() - startStamp) / 1000).toFixed(2) + 's'));

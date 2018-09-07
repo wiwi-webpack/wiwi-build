@@ -35,7 +35,10 @@ module.exports = function(options, firstRun) {
     }
     if (exportcss) {
       if (firstRun) {
-        return ExtractTextPlugin.extract('style-loader', loaders);
+        return ExtractTextPlugin.extract({
+          fallback: 'style-loader',
+          use: loaders
+        });
       } else {
         return 'export-css-loader?remove=true&write=false!' + loaders;
       }
@@ -63,28 +66,28 @@ module.exports = function(options, firstRun) {
   return [{
     test: /\.jsx?$/,
     loader: 'babel-loader',
-    include: srcPath,
     options: {
       plugins: util.babel('plugin', plugins),
       presets: presets,
       cacheDirectory: cacheDirectory,
       babelrc: false
-    }
+    },
+    include: srcPath
   }, {
     test: /\.js$/,
-    use: 'es3ify-loader',
+    loader: 'es3ify-loader',
     include: function(path) {
       return ~path.indexOf('babel-runtime');
     }
   }, {
     test: /\.css$/,
-    use: makeLoader(),
+    loader: makeLoader(),
   }, {
     test: /\.less$/,
-    use: makeLoader('less'),
+    loader: makeLoader('less'),
   }, {
     test: /\.styl$/,
-    use: makeLoader('stylus'),
+    loader: makeLoader('stylus'),
   }, {
     test: /\.svg$/,
     loader: 'babel-loader',
@@ -95,10 +98,10 @@ module.exports = function(options, firstRun) {
     }
   }, {
     test: /\.svg$/,
-    use: 'svg2react-loader',
+    loader: 'svg2react-loader',
   }, {
     test: /\.json$/,
-    use: 'json-loader',
+    loader: 'json-loader',
   }, {
     test: /\.(png|jpe?g|gif|woff|woff2|ttf|otf)$/,
     loader: 'url-loader?limit=10240&publicPath=' + (options.publicPath || './'),
