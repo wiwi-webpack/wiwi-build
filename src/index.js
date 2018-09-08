@@ -47,7 +47,7 @@ module.exports = {
         [ '    --mangle', 'mangle varibles when minify' ],
         [ '    --alias', 'path alias' ],
         [ '    --publicPath <path>', 'set publicPath in webpack'],
-        [ '    --analyse [port]', 'analyse bundle size'],
+        [ '    --analyse [port]', '使用交互式可缩放树形图可视化webpack输出文件的大小'],
     ],
     action: function(options) {
         // options
@@ -107,8 +107,9 @@ module.exports = {
             util.relPath('..', 'node_modules')
         ];
         if (process.cwd() !== util.relPath('..', '..', '..')) {
-            resolveRoot.push(util.relPath('..', '..'));
+            resolveRoot.push(util.cwdPath('node_modules'));
         }
+
         var resolve = {
             modules: resolveRoot,
             alias: alias,
@@ -185,9 +186,9 @@ module.exports = {
             util.finishLog(startStamp);
         } : function(assets) {
             new Balancer.Master().send(util.relPath('minify.js'), {
-            keepconsole: keepconsole,
-            minifyExtension: minifyExtension,
-            mangle: mangle
+                keepconsole: keepconsole,
+                minifyExtension: minifyExtension,
+                mangle: mangle
             }, assets.map(function(a) {
                 return util.cwdPath(dist, a.name);
             }), function() {
@@ -300,7 +301,6 @@ module.exports = {
                     return util.buildFail(err.toString());
                 }
                 if (stats.hasErrors()) {
-                    console.log('stats', stats.toJson().errors);
                     return util.buildFail(stats.toJson().errors[0].split('\n').slice(0, 2).join('\n'));
                 }
                 console.log('\n' + stats.toString({
