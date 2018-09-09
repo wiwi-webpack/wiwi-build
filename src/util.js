@@ -9,6 +9,26 @@ var webpack = require('webpack');
 
 
 var util = {
+    // try to find and load abc.json
+    loadAbc: function() {
+        var cwd = process.cwd();
+        var dir = cwd;
+        var lastDir, abc;
+        while (lastDir !== dir) {
+            try {
+                var abcFile = path.join(dir, 'abc.json');
+                abc = JSON.parse(fs.readFileSync(abcFile, 'utf-8'));
+                break;
+            } catch (e) {
+                lastDir = dir;
+                dir = path.dirname(dir);
+            }
+        }
+        return {
+            root: abc ? dir : cwd, // use abc dir as project root
+            options: abc && abc.options ? abc.options : {} // load abc options
+        };
+    },
     // get absolute path to cwd
     cwdPath: function() {
         var argvs = Array.prototype.slice.call(arguments);
@@ -31,7 +51,7 @@ var util = {
     // make all valid pages as webpack entries
     makePageEntries: function(src, entries, pagesFilter) {
         var pages = fs.readdirSync(path.join(src, 'pages'));
-        if (typeof pagesFilter === 'string') {
+        if (pagesFilter && typeof pagesFilter === 'string') {
             pagesFilter = pagesFilter.split(',');
             pages = pages.filter(function(page) {
                 return pagesFilter.indexOf(page) !== -1;
@@ -55,6 +75,32 @@ var util = {
             }
         });
         return entries;
+    },
+
+    // parse vars for DefinePlugin
+    parseVars: function(vars) {
+        var newVars = {};
+        for (var key in vars) {
+        newVars[key] = JSON.stringify(vars[key]);
+        }
+        return newVars;
+    },
+
+    // make filename suffix by vars
+    suffixByVars: function (vars, buildvars) {
+        if (vars) {
+            var suffix = '';
+            for (var key in vars) {
+                var value = vars[key];
+                // filename suffix will not contain `/`
+                if (value !== undefined && buildvars[key] && buildvars[key].length > 1) {
+                    suffix += '-' + value.toString().replace(/\//, '');
+                }
+            }
+            return suffix;
+        } else {
+            return '';
+        }
     },
 
     // make babel plugin/preset absolute path

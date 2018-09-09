@@ -49,13 +49,14 @@ module.exports = {
         [ '    --analyse [port]', 'analyse bundle size'],
     ],
     action: function(options) {
+        var abc = util.loadAbc();
         // options
         var src = options.src;
         var dist = options.dist;
         var entry = options.entry;
         var pages = options.pages;
-        var vars = parseJSONString(options.vars) || {};
-        var buildvars = util.parseBuildVars(vars, parseJSONString(options.buildvars) || {});
+        var vars = parseJSONString(options.vars) || abc.options.vars || {};
+        var buildvars = util.parseBuildVars(vars, parseJSONString(options.buildvars) || abc.options.buildvars  || {});
         var externals = options.externals || {
             'react': 'window.React',
             'react-dom': 'window.ReactDOM || window.React'
@@ -97,8 +98,11 @@ module.exports = {
         var entries = {
             app: util.makeEntry(src, entry)
         };
+
         if (pages) {
             entries = util.makePageEntries(src, entries, pages);
+        } else if (abc.options.pages) {
+            entries = util.makePageEntries(src, entries, '');
         }
 
         // resolve
@@ -166,15 +170,15 @@ module.exports = {
                 combination = combination || [];
                 var values = valuesArr[combination.length];
                 if (values) {
-                values.forEach(function(value) {
-                    findRoute(combination.concat([ value ]));
-                });
+                    values.forEach(function(value) {
+                        findRoute(combination.concat([ value ]));
+                    });
                 } else {
-                var vars = {};
-                keysArr.forEach(function(key, index) {
-                    vars[key] = combination[index];
-                });
-                combinations.push(vars);
+                    var vars = {};
+                    keysArr.forEach(function(key, index) {
+                        vars[key] = combination[index];
+                    });
+                    combinations.push(vars);
                 }
             }
             findRoute();
@@ -197,27 +201,27 @@ module.exports = {
 
         // run compiler
         if (combinations.length > 1 || multiCompilers) { // multi-compilers
-
+            console.log('multi-compilers', combinations);
             var compilers = combinations.length > 1 ? combinations.map(function(vars, index) {
-            return util.preProcess({
-                mode: 'development',
-                entry: entries,
-                output: {
-                    path: util.cwdPath(dist),
-                    filename: '[name]' + util.suffixByVars(vars, buildvars) + '.js',
-                    publicPath: publicPath
-                },
-                plugins: plugins.concat([
-                    new webpack.DefinePlugin(util.parseVars(vars))
-                ]),
-                resolve: resolve,
-                resolveLoader: resolveLoader,
-                externals: externals,
-                cache: true,
-                module: {
-                    rules: loader(options,  keepcss || index === 0)
-                }
-            });
+                return util.preProcess({
+                    mode: 'development',
+                    entry: entries,
+                    output: {
+                        path: util.cwdPath(dist),
+                        filename: '[name]' + util.suffixByVars(vars, buildvars) + '.js',
+                        publicPath: publicPath
+                    },
+                    plugins: plugins.concat([
+                        new webpack.DefinePlugin(util.parseVars(vars))
+                    ]),
+                    resolve: resolve,
+                    resolveLoader: resolveLoader,
+                    externals: externals,
+                    cache: true,
+                    module: {
+                        rules: loader(options,  keepcss || index === 0)
+                    }
+                });
             }) : util.preProcess({
                 mode: 'development',
                 entry: entries,
@@ -238,35 +242,35 @@ module.exports = {
     
             webpack(compilers, function(err, stats) {
     
-            // print wepack compile result
-            if (err) {
-                return util.buildFail(err.toString());
-            }
-            console.log('=============');
-            var assets = [];
-            stats.stats.forEach(function(stat) {
-                if (stat.hasErrors()) {
-                return util.buildFail(stat.toJson().errors[0].split('\n').slice(0, 2).join('\n'));
+                // print wepack compile result
+                if (err) {
+                    return util.buildFail(err.toString());
                 }
-                console.log(stat.toString({
-                version: false,
-                hash: false,
-                chunks: false,
-                children: false,
-                colors: true
-                }) + '\n=============');
-    
-                // concat assets
-                Array.prototype.push.apply(assets, stat.toJson({
-                hash: false,
-                chunks: false,
-                children: false,
-                modules: false
-                }).assets);
-            });
-    
-            // minify task
-            minify(assets);
+                console.log('=============');
+                var assets = [];
+                stats.stats.forEach(function(stat) {
+                    if (stat.hasErrors()) {
+                    return util.buildFail(stat.toJson().errors[0].split('\n').slice(0, 2).join('\n'));
+                    }
+                    console.log(stat.toString({
+                    version: false,
+                    hash: false,
+                    chunks: false,
+                    children: false,
+                    colors: true
+                    }) + '\n=============');
+        
+                    // concat assets
+                    Array.prototype.push.apply(assets, stat.toJson({
+                        hash: false,
+                        chunks: false,
+                        children: false,
+                        modules: false
+                    }).assets);
+                });
+        
+                // minify task
+                minify(assets);
             });
     
         } else { // single-compiler
