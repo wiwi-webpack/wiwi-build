@@ -34,7 +34,6 @@ module.exports = {
         [ '    --buildvars <json>', 'build varibles' ],
         [ '    --vars <json>', 'runtime varibles' ],
         [ '    --externals', 'webpack external varibles' ],
-        [ '-o, --loose', 'use babel es2015 loose mode to transform codes' ],
         [ '-c, --keepconsole', 'keep `console.log`' ],
         [ '    --keepcss', 'keep non-extracted css in all builds'],
         [ '    --skipminify', 'skip minify js and css' ],
@@ -47,7 +46,7 @@ module.exports = {
         [ '    --mangle', 'mangle varibles when minify' ],
         [ '    --alias', 'path alias' ],
         [ '    --publicPath <path>', 'set publicPath in webpack'],
-        [ '    --analyse [port]', '使用交互式可缩放树形图可视化webpack输出文件的大小'],
+        [ '    --analyse [port]', 'analyse bundle size'],
     ],
     action: function(options) {
         // options
@@ -223,9 +222,9 @@ module.exports = {
                 mode: 'development',
                 entry: entries,
                 output: {
-                path: util.cwdPath(dist),
-                filename: '[name].js',
-                publicPath: publicPath
+                    path: util.cwdPath(dist),
+                    filename: '[name].js',
+                    publicPath: publicPath
                 },
                 plugins: plugins,
                 resolve: resolve,

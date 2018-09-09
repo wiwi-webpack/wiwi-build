@@ -33,7 +33,7 @@ new Balancer.Worker().receive(function(master, context, file, callback) {
 
   // minify js file
   if (/\.js$/.test(file)) {
-    console.log('Minify file: ' + file);
+    console.log('\nMinify file: ' + file);
     var result = UglifyJs.minify(fs.readFileSync(file, 'utf-8'), {
       mangle: context.mangle,
       compress: {
